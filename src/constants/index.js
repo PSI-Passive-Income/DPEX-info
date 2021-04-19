@@ -1,4 +1,4 @@
-export const FACTORY_ADDRESS = '0xBCfCcbde45cE874adCB698cC183deBcF17952812'
+export const FACTORY_ADDRESS = '0x92Be203e0dfb40c1a1F937a36929E02856257A2e'
 
 export const BUNDLE_ID = '1'
 
@@ -12,7 +12,7 @@ export const timeframeOptions = {
 
 // token list urls to fetch tokens from - use for warnings on tokens and pairs
 export const SUPPORTED_LIST_URLS__NO_ENS = [
-  'https://raw.githubusercontent.com/pancakeswap/pancake-swap-interface/master/src/constants/token/pancakeswap.json',
+  'https://raw.githubusercontent.com/PSI-Passive-Income/DPEX-swap-interface/master/src/constants/token/dpex.json',
 ]
 
 // hide from overview list

@@ -1,7 +1,7 @@
 {
-  "name": "@pancakeswap/info",
+  "name": "@passive-income/dpex-info",
   "private": true,
-  "homepage": "https://pancakeswap.info",
+  "homepage": "https://info.passive-income.io",
   "dependencies": {
     "@popperjs/core": "^2.4.2",
     "@reach/portal": "^0.10.3",

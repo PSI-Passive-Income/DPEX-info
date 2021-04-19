@@ -40,13 +40,13 @@ export function getTimeframe(timeWindow) {
 export function getPoolLink(token0Address, token1Address = null, remove = false) {
   if (!token1Address) {
     return (
-      `https://exchange.pancakeswap.finance/#/` +
+      `https://psidex.passive-income.io/#/` +
       (remove ? `remove` : `add`) +
       `/${token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address}/${'ETH'}`
     )
   } else {
     return (
-      `https://exchange.pancakeswap.finance/#/` +
+      `https://psidex.passive-income.io/#/` +
       (remove ? `remove` : `add`) +
       `/${token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address}/${
         token1Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token1Address
@@ -57,9 +57,9 @@ export function getPoolLink(token0Address, token1Address = null, remove = false)
 
 export function getSwapLink(token0Address, token1Address = null) {
   if (!token1Address) {
-    return `https://exchange.pancakeswap.finance/#/swap?inputCurrency=${token0Address}`
+    return `https://psidex.passive-income.io/#/swap?inputCurrency=${token0Address}`
   } else {
-    return `https://exchange.pancakeswap.finance/#/swap?inputCurrency=${
+    return `https://psidex.passive-income.io/#/swap?inputCurrency=${
       token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address
     }&outputCurrency=${token1Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token1Address}`
   }
@@ -98,7 +98,7 @@ export const toWeeklyDate = (date) => {
 }
 
 export function getTimestampsForChanges() {
-  const utcCurrentTime = dayjs.unix(1615636800)
+  const utcCurrentTime = dayjs.utc()
   const t1 = utcCurrentTime.subtract(1, 'day').startOf('minute').unix()
   const t2 = utcCurrentTime.subtract(2, 'day').startOf('minute').unix()
   const tWeek = utcCurrentTime.subtract(1, 'week').startOf('minute').unix()
@@ -173,6 +173,11 @@ export async function getBlocksFromTimestamps(timestamps, skipCount = 500) {
           timestamp: t.split('t')[1],
           number: fetchedData[t][0]['number'],
         })
+      } else {
+        blocks.push({
+          timestamp: 0,
+          number: 0,
+        })
       }
     }
   }
@@ -209,7 +214,7 @@ export async function getLiquidityTokenBalanceOvertime(account, timestamps) {
  */
 export async function getShareValueOverTime(pairAddress, timestamps) {
   if (!timestamps) {
-    const utcCurrentTime = dayjs.unix(1615636800)
+    const utcCurrentTime = dayjs()
     const utcSevenDaysBack = utcCurrentTime.subtract(8, 'day').unix()
     timestamps = getTimestampRange(utcSevenDaysBack, 86400, 7)
   }
@@ -235,10 +240,10 @@ export async function getShareValueOverTime(pairAddress, timestamps) {
         reserve0: result.data[row].reserve0,
         reserve1: result.data[row].reserve1,
         reserveUSD: result.data[row].reserveUSD,
-        token0DerivedETH: result.data[row].token0.derivedETH,
-        token1DerivedETH: result.data[row].token1.derivedETH,
+        token0DerivedETH: result.data[row].token0.derivedBNB,
+        token1DerivedETH: result.data[row].token1.derivedBNB,
         roiUsd: values && values[0] ? sharePriceUsd / values[0]['sharePriceUsd'] : 1,
-        ethPrice: 0,
+        bnbPrice: 0,
         token0PriceUSD: 0,
         token1PriceUSD: 0,
       })
@@ -250,9 +255,9 @@ export async function getShareValueOverTime(pairAddress, timestamps) {
   for (var brow in result?.data) {
     let timestamp = brow.split('b')[1]
     if (timestamp) {
-      values[index].ethPrice = result.data[brow].ethPrice
-      values[index].token0PriceUSD = result.data[brow].ethPrice * values[index].token0DerivedETH
-      values[index].token1PriceUSD = result.data[brow].ethPrice * values[index].token1DerivedETH
+      values[index].bnbPrice = result.data[brow].bnbPrice
+      values[index].token0PriceUSD = result.data[brow].bnbPrice * values[index].token0DerivedETH
+      values[index].token1PriceUSD = result.data[brow].bnbPrice * values[index].token1DerivedETH
       index += 1
     }
   }
@@ -301,7 +306,7 @@ export const urls = {
 }
 
 export const formatTime = (unix) => {
-  const now = dayjs.unix(1615636800)
+  const now = dayjs()
   const timestamp = dayjs.unix(unix)
 
   const inSeconds = now.diff(timestamp, 'second')

@@ -58,11 +58,11 @@ function reducer(state, { type, payload }) {
       }
     }
     case UPDATE_ETH_PRICE: {
-      const { ethPrice, oneDayPrice, ethPriceChange } = payload
+      const { bnbPrice, oneDayPrice, bnbPriceChange } = payload
       return {
-        [ETH_PRICE_KEY]: ethPrice,
+        [ETH_PRICE_KEY]: bnbPrice,
         oneDayPrice,
-        ethPriceChange,
+        bnbPriceChange,
       }
     }
 
@@ -125,13 +125,13 @@ export default function Provider({ children }) {
     })
   }, [])
 
-  const updateEthPrice = useCallback((ethPrice, oneDayPrice, ethPriceChange) => {
+  const updateBnbPrice = useCallback((bnbPrice, oneDayPrice, bnbPriceChange) => {
     dispatch({
       type: UPDATE_ETH_PRICE,
       payload: {
-        ethPrice,
+        bnbPrice,
         oneDayPrice,
-        ethPriceChange,
+        bnbPriceChange,
       },
     })
   }, [])
@@ -171,7 +171,7 @@ export default function Provider({ children }) {
             update,
             updateTransactions,
             updateChart,
-            updateEthPrice,
+            updateBnbPrice,
             updateTopLps,
             updateAllPairsInUniswap,
             updateAllTokensInUniswap,
@@ -183,7 +183,7 @@ export default function Provider({ children }) {
           updateTransactions,
           updateTopLps,
           updateChart,
-          updateEthPrice,
+          updateBnbPrice,
           updateAllPairsInUniswap,
           updateAllTokensInUniswap,
         ]
@@ -198,10 +198,10 @@ export default function Provider({ children }) {
  * Gets all the global data for the overview page.
  * Needs current eth price and the old eth price to get
  * 24 hour USD changes.
- * @param {*} ethPrice
- * @param {*} oldEthPrice
+ * @param {*} bnbPrice
+ * @param {*} oldBnbPrice
  */
-async function getGlobalData(ethPrice, oldEthPrice) {
+async function getGlobalData(bnbPrice, oldBnbPrice) {
   // data for each day , historic data used for % changes
   let data = {}
   let oneDayData = {}
@@ -209,7 +209,7 @@ async function getGlobalData(ethPrice, oldEthPrice) {
 
   try {
     // get timestamps for the days
-    const utcCurrentTime = dayjs.unix(1615636800)
+    const utcCurrentTime = dayjs()
     const utcOneDayBack = utcCurrentTime.subtract(1, 'day').unix()
     const utcTwoDaysBack = utcCurrentTime.subtract(2, 'day').unix()
     const utcOneWeekBack = utcCurrentTime.subtract(1, 'week').unix()
@@ -228,32 +228,32 @@ async function getGlobalData(ethPrice, oldEthPrice) {
       query: GLOBAL_DATA(),
       fetchPolicy: 'cache-first',
     })
-    data = result.data.uniswapFactories[0]
+    data = result.data.dpexFactories[0]
 
     // fetch the historical data
     let oneDayResult = await client.query({
       query: GLOBAL_DATA(oneDayBlock?.number),
       fetchPolicy: 'cache-first',
     })
-    oneDayData = oneDayResult.data.uniswapFactories[0]
+    oneDayData = oneDayResult.data.dpexFactories[0]
 
     let twoDayResult = await client.query({
       query: GLOBAL_DATA(twoDayBlock?.number),
       fetchPolicy: 'cache-first',
     })
-    twoDayData = twoDayResult.data.uniswapFactories[0]
+    twoDayData = twoDayResult.data.dpexFactories[0]
 
     let oneWeekResult = await client.query({
       query: GLOBAL_DATA(oneWeekBlock?.number),
       fetchPolicy: 'cache-first',
     })
-    const oneWeekData = oneWeekResult.data.uniswapFactories[0]
+    const oneWeekData = oneWeekResult.data.dpexFactories[0]
 
     let twoWeekResult = await client.query({
       query: GLOBAL_DATA(twoWeekBlock?.number),
       fetchPolicy: 'cache-first',
     })
-    const twoWeekData = twoWeekResult.data.uniswapFactories[0]
+    const twoWeekData = twoWeekResult.data.dpexFactories[0]
 
     if (data && oneDayData && twoDayData && twoWeekData) {
       let [oneDayVolumeUSD, volumeChangeUSD] = get2DayPercentChange(
@@ -275,10 +275,10 @@ async function getGlobalData(ethPrice, oldEthPrice) {
       )
 
       // format the total liquidity in USD
-      data.totalLiquidityUSD = data.totalLiquidityETH * ethPrice
+      data.totalLiquidityUSD = data.totalLiquidityBNB * bnbPrice
       const liquidityChangeUSD = getPercentChange(
-        data.totalLiquidityETH * ethPrice,
-        oneDayData.totalLiquidityETH * oldEthPrice
+        data.totalLiquidityBNB * bnbPrice,
+        oneDayData.totalLiquidityBNB * oldBnbPrice
       )
 
       // add relevant fields with the calculated amounts
@@ -320,8 +320,8 @@ const getChartData = async (oldestDateToFetch) => {
         fetchPolicy: 'cache-first',
       })
       skip += 1000
-      data = data.concat(result.data.uniswapDayDatas)
-      if (result.data.uniswapDayDatas.length < 1000) {
+      data = data.concat(result.data.dpexDayDatas)
+      if (result.data.dpexDayDatas.length < 1000) {
         allFound = true
       }
     }
@@ -427,12 +427,12 @@ const getGlobalTransactions = async () => {
 /**
  * Gets the current price  of ETH, 24 hour price, and % change between them
  */
-const getEthPrice = async () => {
-  const utcCurrentTime = dayjs.unix(1615636800)
+const getBnbPrice = async () => {
+  const utcCurrentTime = dayjs()
   const utcOneDayBack = utcCurrentTime.subtract(1, 'day').startOf('minute').unix()
 
-  let ethPrice = 0
-  let ethPriceOneDay = 0
+  let bnbPrice = 0
+  let bnbPriceOneDay = 0
   let priceChangeETH = 0
 
   try {
@@ -445,16 +445,16 @@ const getEthPrice = async () => {
       query: ETH_PRICE(oneDayBlock),
       fetchPolicy: 'cache-first',
     })
-    const currentPrice = result?.data?.bundles[0]?.ethPrice
-    const oneDayBackPrice = resultOneDay?.data?.bundles[0]?.ethPrice
+    const currentPrice = result?.data?.bundles[0]?.bnbPrice
+    const oneDayBackPrice = resultOneDay?.data?.bundles[0]?.bnbPrice
     priceChangeETH = getPercentChange(currentPrice, oneDayBackPrice)
-    ethPrice = currentPrice
-    ethPriceOneDay = oneDayBackPrice
+    bnbPrice = currentPrice
+    bnbPriceOneDay = oneDayBackPrice
   } catch (e) {
     console.log(e)
   }
 
-  return [ethPrice, ethPriceOneDay, priceChangeETH]
+  return [bnbPrice, bnbPriceOneDay, priceChangeETH]
 }
 
 const PAIRS_TO_FETCH = 100
@@ -464,7 +464,7 @@ const TOKENS_TO_FETCH = 100
  * Loop through every pair on uniswap, used for search
  */
 async function getAllPairsOnUniswap() {
-  const utcCurrentTime = dayjs.unix(1614556800)
+  const utcCurrentTime = dayjs()
   const utcOneHourBack = utcCurrentTime.subtract(3, 'day').startOf('minute').unix()
   let oneHourBlock = await getBlockFromTimestamp(utcOneHourBack)
 
@@ -525,13 +525,13 @@ async function getAllTokensOnUniswap() {
  */
 export function useGlobalData() {
   const [state, { update, updateAllPairsInUniswap, updateAllTokensInUniswap }] = useGlobalDataContext()
-  const [ethPrice, oldEthPrice] = useEthPrice()
+  const [bnbPrice, oldBnbPrice] = useBnbPrice()
 
   const data = state?.globalData
 
   useEffect(() => {
     async function fetchData() {
-      let globalData = await getGlobalData(ethPrice, oldEthPrice)
+      let globalData = await getGlobalData(bnbPrice, oldBnbPrice)
       globalData && update(globalData)
 
       let allPairs = await getAllPairsOnUniswap()
@@ -540,10 +540,10 @@ export function useGlobalData() {
       let allTokens = await getAllTokensOnUniswap()
       updateAllTokensInUniswap(allTokens)
     }
-    if (!data && ethPrice && oldEthPrice) {
+    if (!data && bnbPrice && oldBnbPrice) {
       fetchData()
     }
-  }, [ethPrice, oldEthPrice, update, data, updateAllPairsInUniswap, updateAllTokensInUniswap])
+  }, [bnbPrice, oldBnbPrice, update, data, updateAllPairsInUniswap, updateAllTokensInUniswap])
 
   return data || {}
 }
@@ -602,21 +602,21 @@ export function useGlobalTransactions() {
   return transactions
 }
 
-export function useEthPrice() {
-  const [state, { updateEthPrice }] = useGlobalDataContext()
-  const ethPrice = state?.[ETH_PRICE_KEY]
-  const ethPriceOld = state?.['oneDayPrice']
+export function useBnbPrice() {
+  const [state, { updateBnbPrice }] = useGlobalDataContext()
+  const bnbPrice = state?.[ETH_PRICE_KEY]
+  const bnbPriceOld = state?.['oneDayPrice']
   useEffect(() => {
-    async function checkForEthPrice() {
-      if (!ethPrice) {
-        let [newPrice, oneDayPrice, priceChange] = await getEthPrice()
-        updateEthPrice(newPrice, oneDayPrice, priceChange)
+    async function checkForBnbPrice() {
+      if (!bnbPrice) {
+        let [newPrice, oneDayPrice, priceChange] = await getBnbPrice()
+        updateBnbPrice(newPrice, oneDayPrice, priceChange)
       }
     }
-    checkForEthPrice()
-  }, [ethPrice, updateEthPrice])
+    checkForBnbPrice()
+  }, [bnbPrice, updateBnbPrice])
 
-  return [ethPrice, ethPriceOld]
+  return [bnbPrice, bnbPriceOld]
 }
 
 export function useAllPairsInUniswap() {

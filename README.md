@@ -1,6 +1,6 @@
 # Pancake History
 
-Check it out live: [https://pancakeswap.info/](https://pancakeswap.info/).
+Check it out live: [https://info.passive-income.io/](https://info.passive-income.io/).
 
 ### To Start Development
 
