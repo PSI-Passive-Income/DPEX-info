@@ -5,6 +5,7 @@ import PlaceHolder from '../../assets/placeholder.png'
 import EthereumLogo from '../../assets/eth.png'
 
 const BAD_IMAGES = {}
+const FALLBACK_IMAGES = {}
 
 const Inline = styled.div`
   display: flex;
@@ -33,10 +34,11 @@ const StyledEthereumLogo = styled.div`
 
 export default function TokenLogo({ address, header = false, size = '24px', ...rest }) {
   const [error, setError] = useState(false)
+  const [fallback, setFallBack] = useState(false)
 
-  useEffect(() => {
-    setError(false)
-  }, [address])
+  // useEffect(() => {
+  //   setError(false)
+  // }, [address])
 
   if (error || BAD_IMAGES[address]) {
     return (
@@ -70,9 +72,13 @@ export default function TokenLogo({ address, header = false, size = '24px', ...r
     )
   }
 
-  const path = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/${isAddress(
+  let path = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/${isAddress(
     address
   )}/logo.png`
+  if (fallback || FALLBACK_IMAGES[address]) {
+    const tokenAddress = isAddress(address)
+    path = `https://psidex.passive-income.io/images/coins/${tokenAddress ? tokenAddress.toLowerCase() : null}.png`
+  }
 
   return (
     <Inline>
@@ -82,8 +88,13 @@ export default function TokenLogo({ address, header = false, size = '24px', ...r
         src={path}
         size={size}
         onError={(event) => {
-          BAD_IMAGES[address] = true
-          setError(true)
+          if (path.startsWith("https://raw.githubusercontent.com")) {
+            FALLBACK_IMAGES[address] = true
+            setFallBack(true)
+          } else {
+            BAD_IMAGES[address] = true
+            setError(true)
+          }
           event.preventDefault()
         }}
       />
