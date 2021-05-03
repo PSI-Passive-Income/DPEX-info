@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { isAddress } from '../../utils/index.js'
 import PlaceHolder from '../../assets/placeholder.png'
@@ -35,10 +35,6 @@ const StyledEthereumLogo = styled.div`
 export default function TokenLogo({ address, header = false, size = '24px', ...rest }) {
   const [error, setError] = useState(false)
   const [fallback, setFallBack] = useState(false)
-
-  // useEffect(() => {
-  //   setError(false)
-  // }, [address])
 
   if (error || BAD_IMAGES[address]) {
     return (
